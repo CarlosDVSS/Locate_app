@@ -25,4 +25,4 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/icons8-google-logo-48.png
+    - assets/
