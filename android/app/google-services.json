@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "470100921234",
+    "firebase_url": "https://rest-locator-34bab-default-rtdb.firebaseio.com",
+    "project_id": "rest-locator-34bab",
+    "storage_bucket": "rest-locator-34bab.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:470100921234:android:fce9067a0c5e6ad7430f4b",
+        "android_client_info": {
+          "package_name": "com.example.rest_locator"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "470100921234-q2aifo5qbc352ucho1mfca13voi51m2l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.rest_locator",
+            "certificate_hash": "66d6754c45fccd551f6533d07320686804ccc409"
+          }
+        },
+        {
+          "client_id": "470100921234-6ps04bodk4c9a8tdhj135vujn1nhj5oa.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBOhODuc_09cz-cSDB7l7QZznoTV7Y3yqk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "470100921234-6ps04bodk4c9a8tdhj135vujn1nhj5oa.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
