@@ -34,7 +34,9 @@ class HomeTab extends StatelessWidget {
                     SpaceDescription(
                       name: space.name, 
                       description: space.description, 
-                      imageUri: space.imageUri
+                      imageUri: space.imageUri,
+                      capacity: space.capacity,
+                      active: space.active,
                     ))
                 )
               },
