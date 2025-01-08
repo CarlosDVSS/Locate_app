@@ -7,7 +7,7 @@ import 'package:locate_app/screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+ 
   // Inicialização do Firebase
   if (kIsWeb) {
     await Firebase.initializeApp(
