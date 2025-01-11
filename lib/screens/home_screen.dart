@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:locate_app/models/space_model.dart';
 import 'package:locate_app/providers/space_provider.dart';
 import 'package:locate_app/screens/tabs/books_tab.dart';
 import 'package:locate_app/screens/tabs/home_tab.dart';
-import 'login.dart'; 
+import 'login.dart';
 
 final bottomNavIndexProvider = StateProvider<int>((ref) => 0);
 
@@ -18,7 +19,6 @@ class HomeScreen extends ConsumerWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Logout realizado com sucesso!')),
       );
-      // Redireciona para a tela de login após o logout
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -32,12 +32,16 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final spaces = ref.watch(filteredSpacesProvider);
-    int _currentIndex = ref.watch(bottomNavIndexProvider);
+    final spaces = ref.watch(filteredSpacesProvider); // Espaços filtrados
+    final spacesNotifier = ref.read(spaceProvider.notifier);
+    final isLoading = spacesNotifier.isLoading; // Obter estado de carregamento
+    final _currentIndex = ref.watch(bottomNavIndexProvider);
 
     final List<Widget> _tabs = [
-      HomeTab(spaces: spaces),
-      BooksTab()
+      isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : HomeTab(spaces: spaces),
+      BooksTab(),
     ];
 
     return DefaultTabController(
@@ -46,22 +50,21 @@ class HomeScreen extends ConsumerWidget {
         appBar: AppBar(
           title: const Text('BookEvents'),
           bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(50), 
+            preferredSize: const Size.fromHeight(50),
             child: Padding(
-              padding: const EdgeInsets.only(right: 10, left: 10, bottom: 5, top: 4),
+              padding:
+                  const EdgeInsets.only(right: 10, left: 10, bottom: 5, top: 4),
               child: TextField(
                 onChanged: (value) {
                   ref.read(searchTermProvider.notifier).state = value;
                 },
                 decoration: InputDecoration(
-                  hintStyle: const TextStyle(
-                    fontSize: 16,
-                  ),
+                  hintStyle: const TextStyle(fontSize: 16),
                   hintText: 'Pesquisar espaços...',
                   prefixIcon: const Icon(Icons.search),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                  )
+                  ),
                 ),
               ),
             ),
@@ -69,25 +72,19 @@ class HomeScreen extends ConsumerWidget {
           actions: [
             IconButton(
               icon: const Icon(Icons.exit_to_app),
-              onPressed: () => _logout(context), 
+              onPressed: () => _logout(context),
             ),
           ],
         ),
-        body: _tabs[_currentIndex],
+        body: _tabs[_currentIndex], // Exibindo a aba ativa
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: (index) {
             ref.read(bottomNavIndexProvider.notifier).state = index;
           },
           items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Início'
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.book),
-              label: 'Reservas'
-            ),
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Início'),
+            BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Reservas'),
           ],
         ),
       ),

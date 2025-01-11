@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:locate_app/screens/home_screen.dart';
-// import 'package:locate_app/screens/login.dart'; 
+// import 'package:locate_app/screens/login.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
- 
+
   // Inicialização do Firebase
   if (kIsWeb) {
     await Firebase.initializeApp(
@@ -26,7 +26,8 @@ void main() async {
     await Firebase.initializeApp();
   }
 
-  runApp(const ProviderScope(child: MyApp())); // Envolvendo a aplicação com o ProviderScope
+  runApp(const ProviderScope(
+      child: MyApp())); // Envolvendo a aplicação com o ProviderScope
 }
 
 class MyApp extends StatelessWidget {
@@ -36,7 +37,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'BookEvents',
-      debugShowCheckedModeBanner: false, 
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
         primaryColor: Colors.deepPurple,
@@ -48,8 +49,7 @@ class MyApp extends StatelessWidget {
         textTheme: const TextTheme(
           bodyMedium: TextStyle(color: Colors.white, fontSize: 16),
           titleMedium: TextStyle(
-              color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20
-            ),
+              color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
