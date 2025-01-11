@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:locate_app/models/space_model.dart';
 import 'package:locate_app/providers/space_provider.dart';
 import 'package:locate_app/screens/tabs/books_tab.dart';
 import 'package:locate_app/screens/tabs/home_tab.dart';

@@ -25,22 +25,20 @@ class HomeTab extends StatelessWidget {
 
               return GestureDetector(
                 onTap: () => {
+                  // Navegar para a tela de detalhes e passar o SpaceModel completo
                   Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => SpaceDescription(
-                                name: space.name,
-                                description: space. description,
-                                imageUri: space.imageUri,
-                                capacity: space.capacity,
-                                active: space.active,
-                              )))
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SpaceDescription(
+                        space: space, // Passando o modelo completo
+                      ),
+                    ),
+                  ),
                 },
                 child: Card(
                   color: Colors.grey[900],
                   elevation: 4,
-                  margin:
-                      const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+                  margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
                   child: ListTile(
                     leading: Image.asset(
                       space.imageUri,
@@ -54,8 +52,7 @@ class HomeTab extends StatelessWidget {
                       children: [
                         Text(
                           'Capacidade: ${space.capacity} (${space.availableSlots} horários disponíveis.)',
-                          style:
-                              TextStyle(fontSize: 14, color: Colors.grey[400]),
+                          style: TextStyle(fontSize: 14, color: Colors.grey[400]),
                         ),
                         Text(
                           space.active

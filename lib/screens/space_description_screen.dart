@@ -1,20 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:locate_app/screens/booking_screen.dart';
+import 'package:locate_app/models/space_model.dart';
 
 class SpaceDescription extends StatelessWidget {
-  final String name;
-  final String description;
-  final String imageUri;
-  final int capacity;
-  final bool active;
+  final SpaceModel space;
 
   const SpaceDescription({
     super.key,
-    required this.name,
-    required this.description,
-    required this.imageUri,
-    required this.capacity,
-    required this.active,
+    required this.space,
   });
 
   @override
@@ -34,7 +27,7 @@ class SpaceDescription extends StatelessWidget {
                 children: [
                   Center(
                     child: Text(
-                      name,
+                      space.name,
                       style: const TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
@@ -46,7 +39,7 @@ class SpaceDescription extends StatelessWidget {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
                     child: Image.asset(
-                      imageUri,
+                      space.imageUri,
                       width: double.infinity,
                       height: 300,
                       fit: BoxFit.cover,
@@ -56,8 +49,8 @@ class SpaceDescription extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildStatusChip(active),
-                      _buildCapacityChip(capacity),
+                      _buildStatusChip(space.active),
+                      _buildCapacityChip(space.capacity),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -67,17 +60,20 @@ class SpaceDescription extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    description,
+                    space.description,
                     style: const TextStyle(fontSize: 16),
                   ),
                   const SizedBox(height: 32),
                   Center(
                     child: ElevatedButton(
                       onPressed: () {
+                        // Navegar para a tela de reserva e passar o espaço selecionado
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const BookingScreen(),
+                            builder: (context) => BookingScreen(
+                              selectedSpace: space,
+                            ),
                           ),
                         );
                       },

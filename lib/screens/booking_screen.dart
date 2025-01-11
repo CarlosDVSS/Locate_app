@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:locate_app/models/space_model.dart';
+import 'package:locate_app/providers/reservation_provider.dart';
 
-class BookingScreen extends StatefulWidget {
-  const BookingScreen({super.key});
+class BookingScreen extends ConsumerStatefulWidget {
+  final SpaceModel selectedSpace;
+
+  const BookingScreen({super.key, required this.selectedSpace});
 
   @override
-  State<BookingScreen> createState() => _BookingScreenState();
+  _BookingScreenState createState() => _BookingScreenState();
 }
 
-class _BookingScreenState extends State<BookingScreen> {
-
+class _BookingScreenState extends ConsumerState<BookingScreen> {
   final _formKey = GlobalKey<FormState>();
-
-  final TextEditingController _spaceNameController = TextEditingController();
-  final TextEditingController _reserverNameController = TextEditingController();
-
   final List<String> _timeSlots = [
     '08:00 - 10:00',
     '10:00 - 12:00',
@@ -24,31 +25,27 @@ class _BookingScreenState extends State<BookingScreen> {
     '20:00 - 22:00',
   ];
 
-  String? _selectedTimeSlot; 
+  String? _selectedTimeSlot;
 
-  void _submitReservation() {
+  void _submitReservation() async {
     if (_formKey.currentState!.validate()) {
-      final spaceName = _spaceNameController.text;
-      final reserverName = _reserverNameController.text;
-      final selectedTimeSlot = _selectedTimeSlot;
+      final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
+      final spaceId = widget.selectedSpace.id;
+      final timeSlot = _selectedTimeSlot;
 
-      if (selectedTimeSlot == null) {
+      if (timeSlot == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Por favor, selecione um horário.')),
         );
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Reserva feita para $spaceName às $selectedTimeSlot por $reserverName.')),
-      );
+      // Adicionar reserva usando o provider
+      await ref.read(reservationProvider.notifier).addReservation(userId, spaceId, timeSlot);
 
-      _formKey.currentState!.reset();
-      _spaceNameController.clear();
-      _reserverNameController.clear();
-      setState(() {
-        _selectedTimeSlot = null;
-      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Reserva feita para ${widget.selectedSpace.name} às $timeSlot')),
+      );
 
       Navigator.pop(context);
     }
@@ -67,18 +64,9 @@ class _BookingScreenState extends State<BookingScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextFormField(
-                controller: _spaceNameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nome do Espaço',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira o nome do espaço.';
-                  }
-                  return null;
-                },
+              Text(
+                'Espaço: ${widget.selectedSpace.name}',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
@@ -101,20 +89,6 @@ class _BookingScreenState extends State<BookingScreen> {
                 validator: (value) {
                   if (value == null) {
                     return 'Por favor, selecione um horário.';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _reserverNameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nome do Responsável',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira o nome do responsável.';
                   }
                   return null;
                 },
