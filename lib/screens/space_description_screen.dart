@@ -66,21 +66,26 @@ class SpaceDescription extends StatelessWidget {
                   const SizedBox(height: 32),
                   Center(
                     child: ElevatedButton(
-                      onPressed: () {
-                        // Navegar para a tela de reserva e passar o espaço selecionado
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => BookingScreen(
-                              selectedSpace: space,
-                            ),
-                          ),
-                        );
-                      },
+                      onPressed: space.active && space.available
+                          ? () {
+                              // Navegar para a tela de reserva e passar o espaço selecionado
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => BookingScreen(
+                                    selectedSpace: space,
+                                  ),
+                                ),
+                              );
+                            }
+                          : null, // Desabilita o botão se o espaço não estiver disponível
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 40, vertical: 15),
                         textStyle: const TextStyle(fontSize: 18),
+                        backgroundColor: space.active && space.available
+                            ? null
+                            : Colors.grey, // Altera a cor do botão se inativo
                       ),
                       child: const Text(
                         'Fazer Reserva',

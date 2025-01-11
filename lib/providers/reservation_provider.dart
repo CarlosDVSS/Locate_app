@@ -49,6 +49,40 @@ class ReservationNotifier extends StateNotifier<List<ReservationModel>> {
     }
   }
 
+  // Carregar todas as reservas (para verificar disponibilidade no booking screen)
+  Future<void> loadAllReservations() async {
+    final url = '$apiUrl/reservations.json';
+    isLoading = true;
+    state = [];  // Limpar o estado antes de carregar as reservas
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      final data = jsonDecode(response.body) as Map<String, dynamic>?;
+
+      if (data != null) {
+        final List<ReservationModel> loadedReservations = [];
+        for (var key in data.keys) {
+          var reservationData = data[key];
+          final spaceId = reservationData['spaceId'];
+
+          final spaceUrl = '$apiUrl/spaces/$spaceId.json';
+          final spaceResponse = await http.get(Uri.parse(spaceUrl));
+          final spaceData = jsonDecode(spaceResponse.body);
+          final spaceName = spaceData['name'];
+
+          reservationData['spaceName'] = spaceName;
+          reservationData['id'] = key;
+          loadedReservations.add(ReservationModel.fromJson(reservationData));
+        }
+        state = loadedReservations;
+      }
+    } catch (e) {
+      print('Erro ao carregar todas as reservas: $e');
+    } finally {
+      isLoading = false;
+    }
+  }
+
   // Criar nova reserva
   Future<void> addReservation(String userId, String spaceId, String timeSlot) async {
     final url = '$apiUrl/reservations.json';

@@ -2,12 +2,13 @@ class SpaceModel {
   String id;
   String name;
   String imageUri;
-  List<String> timeSlots;
-  int availableSlots;
-  bool active;
-  bool available;
-  int capacity;
-  String description;
+  List<String> timeSlots; // Lista de horários possíveis
+  int availableSlots; // Slots disponíveis para reserva
+  bool active; // Verifica se o espaço está ativo
+  bool available; // Verifica se o espaço está disponível para reserva
+  int capacity; // Capacidade do espaço
+  String description; // Descrição do espaço
+  List<String> reservedTimeSlots; // Lista de horários já reservados
 
   SpaceModel({
     required this.id,
@@ -19,6 +20,7 @@ class SpaceModel {
     required this.available,
     required this.capacity,
     required this.description,
+    required this.reservedTimeSlots, // Inicializando com a lista de horários reservados
   });
 
   // Método para converter para JSON
@@ -33,6 +35,7 @@ class SpaceModel {
       'available': available,
       'capacity': capacity,
       'description': description,
+      'reservedTimeSlots': reservedTimeSlots, // Adicionando reservedTimeSlots ao JSON
     };
   }
 
@@ -48,6 +51,12 @@ class SpaceModel {
       available: json['available'],
       capacity: json['capacity'],
       description: json['description'],
+      reservedTimeSlots: List<String>.from(json['reservedTimeSlots'] ?? []), // Se não houver reservas, atribui uma lista vazia
     );
+  }
+
+  // Método para verificar se um horário está disponível
+  bool isTimeSlotAvailable(String timeSlot) {
+    return !reservedTimeSlots.contains(timeSlot); // Verifica se o horário não está reservado
   }
 }
