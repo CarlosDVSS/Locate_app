@@ -46,6 +46,7 @@ class HomeTab extends ConsumerWidget {
           )
         : ListView(
           children: [
+            const SizedBox(height: 8),
             ExpansionPanelList(
               expansionCallback: (index, isExpanded) {
                 ref.read(expansionStateProvider.notifier).toggle('active');
@@ -66,7 +67,30 @@ class HomeTab extends ConsumerWidget {
                   isExpanded: expansionState['active']!,
                 )
               ],
-            )
+            ),
+            const SizedBox(height: 8),
+            ExpansionPanelList(
+                expansionCallback: (index, isExpanded) {
+                  ref.read(expansionStateProvider.notifier).toggle('inactive');
+                },
+                children: [
+                  ExpansionPanel(
+                    headerBuilder: (context, isExpanded) {
+                      return ListTile(
+                        title: Text(
+                          'Inativos (${inactiveSpaces.length})',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      );
+                    },
+                  body: _buildSpaceList(context, inactiveSpaces),
+                  isExpanded: expansionState['inactive']!,
+                ),
+              ],
+            ),
           ],
       );
   }
