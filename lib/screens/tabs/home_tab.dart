@@ -9,73 +9,103 @@ class HomeTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return spaces.isEmpty
-        ? const Center(
-            child: Text(
-              'Nenhum Espaço encontrado...',
-              style: TextStyle(
-                fontSize: 18,
-              ),
-            ),
-          )
-        : ListView.builder(
-            itemCount: spaces.length,
-            itemBuilder: (context, index) {
-              final space = spaces[index];
+    // Organiza os espaços em ordem: ativos primeiro, depois inativos.
+    final sortedSpaces = [
+      ...spaces.where((space) => space.active),
+      ...spaces.where((space) => !space.active),
+    ];
 
-              return GestureDetector(
-                onTap: () => {
-                  // Navegar para a tela de detalhes e passar o SpaceModel completo
+    // Retorna uma mensagem centralizada se não houver espaços.
+    if (sortedSpaces.isEmpty) {
+      return const Center(
+        child: Text(
+          'Nenhum espaço encontrado...',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: sortedSpaces.length,
+      itemBuilder: (context, index) {
+        final space = sortedSpaces[index];
+
+        return GestureDetector(
+          onTap: space.active
+              ? () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => SpaceDescription(
-                        space: space, // Passando o modelo completo
+                      builder: (context) => SpaceDescription(space: space),
+                    ),
+                  );
+                }
+              : null,
+          child: Card(
+            color: space.active ? Colors.grey[900] : Colors.grey[800],
+            elevation: 4,
+            margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: ListTile(
+              leading: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  space.imageUri,
+                  width: 60,
+                  height: 60,
+                  fit: BoxFit.cover,
+                  color: space.active ? null : Colors.grey,
+                  colorBlendMode: space.active ? null : BlendMode.saturation,
+                ),
+              ),
+              title: Text(
+                space.name,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: space.active ? Colors.white : Colors.grey[400],
+                ),
+              ),
+              subtitle: Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      space.active
+                          ? (space.available ? 'Disponível' : 'Ocupado')
+                          : 'Indisponível',
+                      style: TextStyle(
+                        color: space.active
+                            ? (space.available ? Colors.green : Colors.red)
+                            : Colors.redAccent,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                },
-                child: Card(
-                  color: Colors.grey[900],
-                  elevation: 4,
-                  margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
-                  child: ListTile(
-                    leading: Image.asset(
-                      space.imageUri,
-                      width: 60,
-                      height: 60,
-                      fit: BoxFit.cover,
+                    const SizedBox(height: 2),
+                    Text(
+                      space.active ? 'Ativo' : 'Inativo',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: space.active ? Colors.greenAccent : Colors.redAccent,
+                      ),
                     ),
-                    title: Text(space.name),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Capacidade: ${space.capacity} (${space.availableSlots} horários disponíveis.)',
-                          style: TextStyle(fontSize: 14, color: Colors.grey[400]),
-                        ),
-                        Text(
-                          space.active
-                              ? space.available
-                                  ? 'Disponível'
-                                  : 'Ocupado'
-                              : 'Indisponível',
-                          style: TextStyle(
-                            color: space.available ? Colors.green : Colors.red,
-                          ),
-                        ),
-                        Text(
-                          space.active ? 'Ativo' : 'Inativo',
-                          style: TextStyle(
-                            color: space.active ? Colors.green : Colors.red,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  ],
                 ),
-              );
-            },
-          );
+              ),
+              trailing: Icon(
+                space.active ? Icons.chevron_right : Icons.block,
+                color: space.active ? Colors.orange : Colors.grey,
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 }
