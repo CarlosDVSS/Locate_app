@@ -40,7 +40,7 @@ class HomeScreen extends ConsumerWidget {
       isLoading
           ? const Center(child: CircularProgressIndicator())
           : HomeTab(spaces: spaces),
-      BooksTab(),
+      const BooksTab(),
     ];
 
     return DefaultTabController(
