@@ -29,10 +29,11 @@ class HomeTab extends ConsumerWidget {
   const HomeTab({super.key, required this.spaces});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Organiza os espaços em ordem: ativos primeiro, depois inativos.
+  Widget build(BuildContext context, ref) {
+    // Organiza os espaços na ordem desejada: disponível primeiro, depois ocupado e por último inativo.
     final sortedSpaces = [
-      ...spaces.where((space) => space.active),
+      ...spaces.where((space) => space.active && space.available),
+      ...spaces.where((space) => space.active && !space.available),
       ...spaces.where((space) => !space.active),
     ];
 
@@ -98,10 +99,6 @@ class HomeTab extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Capacidade: ${space.capacity}',
-                      style: TextStyle(fontSize: 14, color: Colors.grey[400]),
-                    ),
-                    Text(
                       space.active
                           ? (space.available ? 'Disponível' : 'Ocupado')
                           : 'Indisponível',
@@ -118,6 +115,15 @@ class HomeTab extends ConsumerWidget {
                       style: TextStyle(
                         fontSize: 12,
                         color: space.active ? Colors.greenAccent : Colors.redAccent,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    // Exibindo a capacidade do espaço
+                    Text(
+                      'Capacidade: ${space.capacity}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: space.active ? Colors.white70 : Colors.grey[500],
                       ),
                     ),
                   ],
