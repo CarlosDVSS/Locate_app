@@ -30,115 +30,107 @@ class HomeTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final expansionState = ref.watch(expansionStateProvider);
+    // Organiza os espaços em ordem: ativos primeiro, depois inativos.
+    final sortedSpaces = [
+      ...spaces.where((space) => space.active),
+      ...spaces.where((space) => !space.active),
+    ];
 
-    final activeSpaces = spaces.where((space) => space.active).toList();
-    final inactiveSpaces = spaces.where((space) => !space.active).toList();
-
-    return spaces.isEmpty
-        ? const Center(
-            child: Text(
-              'Nenhum Espaço encontrado...',
-              style: TextStyle(
-                fontSize: 18,
-              ),
-            ),
-          )
-        : ListView(
-          children: [
-            const SizedBox(height: 8),
-            ExpansionPanelList(
-              expansionCallback: (index, isExpanded) {
-                ref.read(expansionStateProvider.notifier).toggle('active');
-              },
-              children: [
-                ExpansionPanel(
-                  headerBuilder: (context, isExpanded) {
-                    return ListTile(
-                      title: Text(
-                        'Ativos (${activeSpaces.length})',
-                        style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold
-                        ),
-                      )
-                    );
-                  }, 
-                  body: _buildSpaceList(context, activeSpaces),
-                  isExpanded: expansionState['active']!,
-                )
-              ],
-            ),
-            const SizedBox(height: 8),
-            ExpansionPanelList(
-                expansionCallback: (index, isExpanded) {
-                  ref.read(expansionStateProvider.notifier).toggle('inactive');
-                },
-                children: [
-                  ExpansionPanel(
-                    headerBuilder: (context, isExpanded) {
-                      return ListTile(
-                        title: Text(
-                          'Inativos (${inactiveSpaces.length})',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      );
-                    },
-                  body: _buildSpaceList(context, inactiveSpaces),
-                  isExpanded: expansionState['inactive']!,
-                ),
-              ],
-            ),
-          ],
+    // Retorna uma mensagem centralizada se não houver espaços.
+    if (sortedSpaces.isEmpty) {
+      return const Center(
+        child: Text(
+          'Nenhum espaço encontrado...',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
       );
-  }
-  Widget _buildSpaceList(BuildContext context, List<SpaceModel> spaces) {
-    return Column(
-      children: spaces.map((space) {
+    }
+
+    return ListView.builder(
+      itemCount: sortedSpaces.length,
+      itemBuilder: (context, index) {
+        final space = sortedSpaces[index];
+
         return GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => SpaceDescription(space: space),
-              ),
-            );
-          },
+          onTap: space.active
+              ? () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SpaceDescription(space: space),
+                    ),
+                  );
+                }
+              : null,
           child: Card(
-            color:  Colors.grey[900],
+            color: space.active ? Colors.grey[900] : Colors.grey[850],
             elevation: 4,
-            margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+            margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: ListTile(
-              leading: Image.asset(
-                space.imageUri,
-                width: 60,
-                height: 60,
-                fit: BoxFit.cover,
+              leading: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  space.imageUri,
+                  width: 60,
+                  height: 60,
+                  fit: BoxFit.cover,
+                  color: space.active ? null : Colors.grey,
+                  colorBlendMode: space.active ? null : BlendMode.saturation,
+                ),
               ),
-              title: Text(space.name),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Capacidade: ${space.capacity}',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[400]),
-                  ),
-                  Text(
-                    space.active
-                      ? space.available
-                        ? 'Disponível'
-                        : 'Ocupado'
-                      : 'Indisponível',
-                      style: TextStyle(color: space.available ? Colors.green : Colors.red),
-                  )
-                ],
+              title: Text(
+                space.name,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: space.active ? Colors.white : Colors.grey[400],
+                ),
+              ),
+              subtitle: Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Capacidade: ${space.capacity}',
+                      style: TextStyle(fontSize: 14, color: Colors.grey[400]),
+                    ),
+                    Text(
+                      space.active
+                          ? (space.available ? 'Disponível' : 'Ocupado')
+                          : 'Indisponível',
+                      style: TextStyle(
+                        color: space.active
+                            ? (space.available ? Colors.green : Colors.red)
+                            : Colors.redAccent,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      space.active ? 'Ativo' : 'Inativo',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: space.active ? Colors.greenAccent : Colors.redAccent,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              trailing: Icon(
+                space.active ? Icons.chevron_right : Icons.block,
+                color: space.active ? Colors.orange : Colors.grey,
               ),
             ),
           ),
         );
-      }).toList(),
+      },
     );
   }
 }

@@ -29,15 +29,29 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   String? _selectedTimeSlot;
   bool isLoading = false;
 
-  // Função para verificar se o horário está disponível
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() => _loadReservations());
+  }
+
+  Future<void> _loadReservations() async {
+    setState(() {
+      isLoading = true;
+    });
+    await ref.read(reservationProvider.notifier).loadAllReservations();
+    setState(() {
+      isLoading = false;
+    });
+  }
+
   bool isTimeSlotAvailable(String timeSlot, List<ReservationModel> reservations) {
-    // Verifica se já existe uma reserva para o mesmo horário e espaço
     for (var reservation in reservations) {
       if (reservation.timeSlot == timeSlot && reservation.spaceId == widget.selectedSpace.id) {
-        return false; // Horário já está ocupado para este espaço
+        return false;
       }
     }
-    return true; // Horário disponível
+    return true;
   }
 
   void _submitReservation() async {
@@ -53,19 +67,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
         return;
       }
 
-      // Carregar todas as reservas do sistema
-      setState(() {
-        isLoading = true;
-      });
-      await ref.read(reservationProvider.notifier).loadAllReservations(); // Carregar todas as reservas
       final reservations = ref.read(reservationProvider);
 
-      // Verifica a disponibilidade do horário
       bool available = isTimeSlotAvailable(timeSlot, reservations);
-
-      setState(() {
-        isLoading = false;
-      });
 
       if (!available) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -74,7 +78,6 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
         return;
       }
 
-      // Adicionar reserva usando o provider
       await ref.read(reservationProvider.notifier).addReservation(userId, spaceId, timeSlot);
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -87,79 +90,82 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final reservations = ref.watch(reservationProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Fazer Reserva'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Espaço: ${widget.selectedSpace.name}',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              // Verifica se o espaço está ativo e disponível para permitir a seleção de horário
-              if (!widget.selectedSpace.active)
-                Text(
-                  'Este espaço não está disponível para reservas.',
-                  style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: _selectedTimeSlot,
-                decoration: const InputDecoration(
-                  labelText: 'Horário',
-                  border: OutlineInputBorder(),
-                ),
-                items: _timeSlots.map((slot) {
-                  final isAvailable = isTimeSlotAvailable(slot, ref.read(reservationProvider));
-                  return DropdownMenuItem(
-                    value: slot,
-                    child: Text(
-                      slot + (isAvailable ? '' : ' (Ocupado)'),
-                      style: TextStyle(
-                        color: isAvailable ? null : Colors.grey,
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Espaço: ${widget.selectedSpace.name}',
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 16),
+                    if (!widget.selectedSpace.active)
+                      const Text(
+                        'Este espaço não está disponível para reservas.',
+                        style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                      ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: _selectedTimeSlot,
+                      decoration: const InputDecoration(
+                        labelText: 'Horário',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: _timeSlots.map((slot) {
+                        final isAvailable = isTimeSlotAvailable(slot, reservations);
+                        return DropdownMenuItem(
+                          value: slot,
+                          child: Text(
+                            slot + (isAvailable ? '' : ' (Ocupado)'),
+                            style: TextStyle(
+                              color: isAvailable ? null : Colors.grey,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: widget.selectedSpace.active
+                          ? (value) {
+                              setState(() {
+                                _selectedTimeSlot = value;
+                              });
+                            }
+                          : null,
+                      validator: (value) {
+                        if (value == null) {
+                          return 'Por favor, selecione um horário.';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: widget.selectedSpace.active && _selectedTimeSlot != null
+                            ? _submitReservation
+                            : null,
+                        child: isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const Text(
+                                'Reservar',
+                                style: TextStyle(color: Colors.white),
+                              ),
                       ),
                     ),
-                  );
-                }).toList(),
-                onChanged: widget.selectedSpace.active
-                    ? (value) {
-                        setState(() {
-                          _selectedTimeSlot = value;
-                        });
-                      }
-                    : null,
-                validator: (value) {
-                  if (value == null) {
-                    return 'Por favor, selecione um horário.';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 24),
-              Center(
-                child: ElevatedButton(
-                  onPressed: widget.selectedSpace.active && _selectedTimeSlot != null
-                      ? _submitReservation
-                      : null,
-                  child: isLoading
-                      ? const CircularProgressIndicator(color: Colors.white,)
-                      : const Text(
-                          'Reservar',
-                          style: TextStyle(color: Colors.white),
-                        ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 }
