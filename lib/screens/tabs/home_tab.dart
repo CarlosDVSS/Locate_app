@@ -9,9 +9,10 @@ class HomeTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Organiza os espaços em ordem: ativos primeiro, depois inativos.
+    // Organiza os espaços na ordem desejada: disponível primeiro, depois ocupado e por último inativo.
     final sortedSpaces = [
-      ...spaces.where((space) => space.active),
+      ...spaces.where((space) => space.active && space.available),
+      ...spaces.where((space) => space.active && !space.available),
       ...spaces.where((space) => !space.active),
     ];
 
@@ -93,6 +94,15 @@ class HomeTab extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         color: space.active ? Colors.greenAccent : Colors.redAccent,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    // Exibindo a capacidade do espaço
+                    Text(
+                      'Capacidade: ${space.capacity}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: space.active ? Colors.white70 : Colors.grey[500],
                       ),
                     ),
                   ],

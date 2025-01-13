@@ -11,7 +11,6 @@ final bottomNavIndexProvider = StateProvider<int>((ref) => 0);
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
-  // Função para fazer logout
   Future<void> _logout(BuildContext context) async {
     try {
       await FirebaseAuth.instance.signOut();
@@ -39,36 +38,41 @@ class HomeScreen extends ConsumerWidget {
     final List<Widget> tabs = [
       isLoading
           ? const Center(child: CircularProgressIndicator())
-          : HomeTab(spaces: spaces),
+          : HomeTab(spaces: spaces), // Passando os espaços filtrados
       BooksTab(),
     ];
+
+    // Função para recarregar os espaços quando a aba "Início" for selecionada
+    void _reloadSpaces() {
+      ref.refresh(spaceProvider);
+    }
 
     return DefaultTabController(
       length: 2,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('BookEvents'),
-          bottom: currentIndex == 0 ?
-          PreferredSize(
-            preferredSize: const Size.fromHeight(50),
-            child: Padding(
-              padding:
-                  const EdgeInsets.only(right: 10, left: 10, bottom: 5, top: 4),
-              child: TextField(
-                onChanged: (value) {
-                  ref.read(searchTermProvider.notifier).state = value;
-                },
-                decoration: InputDecoration(
-                  hintStyle: const TextStyle(fontSize: 16),
-                  hintText: 'Pesquisar espaços...',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+          bottom: currentIndex == 0
+              ? PreferredSize(
+                  preferredSize: const Size.fromHeight(50),
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 10, left: 10, bottom: 5, top: 4),
+                    child: TextField(
+                      onChanged: (value) {
+                        ref.read(searchTermProvider.notifier).state = value;
+                      },
+                      decoration: InputDecoration(
+                        hintStyle: const TextStyle(fontSize: 16),
+                        hintText: 'Pesquisar espaços...',
+                        prefixIcon: const Icon(Icons.search),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ),
-          ) : null,
+                )
+              : null,
           actions: [
             IconButton(
               icon: const Icon(Icons.exit_to_app),
@@ -81,6 +85,9 @@ class HomeScreen extends ConsumerWidget {
           currentIndex: currentIndex,
           onTap: (index) {
             ref.read(bottomNavIndexProvider.notifier).state = index;
+            if (index == 0) {
+              _reloadSpaces(); // Recarrega os espaços quando "Início" é selecionado
+            }
           },
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Início'),

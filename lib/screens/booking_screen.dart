@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:locate_app/models/space_model.dart';
 import 'package:locate_app/models/reservation_model.dart';
 import 'package:locate_app/providers/reservation_provider.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class BookingScreen extends ConsumerStatefulWidget {
   final SpaceModel selectedSpace;
@@ -54,6 +56,37 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     return true;
   }
 
+  Future<void> _updateSpaceAvailability() async {
+    final reservations = ref.read(reservationProvider);
+    final spaceId = widget.selectedSpace.id;
+
+    final spaceUrl = '$apiUrl/spaces/$spaceId.json';
+    final spaceResponse = await http.get(Uri.parse(spaceUrl));
+    final spaceData = jsonDecode(spaceResponse.body);
+    final SpaceModel space = SpaceModel.fromJson(spaceData);
+
+    // Contar o número de horários reservados para o espaço
+    final reservedTimeSlots = reservations
+        .where((reservation) => reservation.spaceId == spaceId)
+        .map((reservation) => reservation.timeSlot)
+        .toSet();
+
+    // Se todos os 7 horários estiverem ocupados, atualizar o estado para 'ocupado'
+    if (reservedTimeSlots.length == _timeSlots.length && space.available) {
+      space.available = false; // Marcar como ocupado
+      await http.put(
+        Uri.parse(spaceUrl),
+        body: jsonEncode(space.toJson()),
+      );
+    } else if (reservedTimeSlots.length < _timeSlots.length && !space.available) {
+      space.available = true; // Marcar como disponível
+      await http.put(
+        Uri.parse(spaceUrl),
+        body: jsonEncode(space.toJson()),
+      );
+    }
+  }
+
   void _submitReservation() async {
     if (_formKey.currentState!.validate()) {
       final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
@@ -79,6 +112,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       }
 
       await ref.read(reservationProvider.notifier).addReservation(userId, spaceId, timeSlot);
+
+      // Atualizar a disponibilidade do espaço após fazer a reserva
+      await _updateSpaceAvailability();
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Reserva feita para ${widget.selectedSpace.name} às $timeSlot')),
@@ -110,7 +146,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
-                    if (!widget.selectedSpace.active)
+                    if (!widget.selectedSpace.available)
                       const Text(
                         'Este espaço não está disponível para reservas.',
                         style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
@@ -134,7 +170,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                           ),
                         );
                       }).toList(),
-                      onChanged: widget.selectedSpace.active
+                      onChanged: widget.selectedSpace.available
                           ? (value) {
                               setState(() {
                                 _selectedTimeSlot = value;
@@ -151,7 +187,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                     const SizedBox(height: 24),
                     Center(
                       child: ElevatedButton(
-                        onPressed: widget.selectedSpace.active && _selectedTimeSlot != null
+                        onPressed: widget.selectedSpace.available && _selectedTimeSlot != null
                             ? _submitReservation
                             : null,
                         child: isLoading
